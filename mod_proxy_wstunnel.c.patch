@@ -1,0 +1,51 @@
+--- mod_proxy_wstunnel.c.orig	2017-03-31 10:55:06.223830547 +0200
++++ mod_proxy_wstunnel.c	2017-05-23 14:16:31.641548088 +0200
+@@ -97,7 +97,8 @@
+                                 proxy_worker *worker,
+                                 proxy_server_conf *conf,
+                                 apr_uri_t *uri,
+-                                char *url, char *server_portstr)
++                                char *url, char *server_portstr,
++				const char* upgrade)
+ {
+     apr_status_t rv;
+     apr_pollset_t *pollset;
+@@ -116,6 +117,7 @@
+     apr_bucket_brigade *bb = apr_brigade_create(p, c->bucket_alloc);
+     apr_socket_t *client_socket = ap_get_conn_socket(c);
+     int done = 0, replied = 0;
++    char* upgrade_val = NULL;
+ 
+     header_brigade = apr_brigade_create(p, backconn->bucket_alloc);
+ 
+@@ -127,8 +129,7 @@
+     if (rv != OK) {
+         return rv;
+     }
+-
+-    buf = apr_pstrdup(p, "Upgrade: WebSocket" CRLF "Connection: Upgrade" CRLF CRLF);
++    buf = apr_pstrcat(p,"Upgrade: ", upgrade, CRLF, "Connection: Upgrade", CRLF, CRLF, NULL);
+     ap_xlate_proto_to_ascii(buf, strlen(buf));
+     e = apr_bucket_pool_create(buf, strlen(buf), p, c->bucket_alloc);
+     APR_BRIGADE_INSERT_TAIL(header_brigade, e);
+@@ -295,9 +296,9 @@
+     }
+ 
+     upgrade = apr_table_get(r->headers_in, "Upgrade");
+-    if (!upgrade || strcasecmp(upgrade, "WebSocket") != 0) {
++    if (!upgrade || (strcasecmp(upgrade, "jboss-remoting") != 0 && strcasecmp(upgrade,"activemq-remoting") != 0)) {
+         ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, APLOGNO(02900)
+-                      "declining URL %s  (not WebSocket)", url);
++                      "declining URL %s  (not Jboss or ActiveMQ WebSocket)", url);
+         return DECLINED;
+     }
+ 
+@@ -350,7 +351,7 @@
+ 
+         /* Step Three: Process the Request */
+         status = proxy_wstunnel_request(p, r, backend, worker, conf, uri, locurl,
+-                                      server_portstr);
++                                      server_portstr,upgrade);
+         break;
+     }
+ 
