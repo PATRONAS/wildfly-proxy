@@ -5,4 +5,4 @@ It covers all upgrade mechanisms that are required to provide remoting (EJB, JND
 This as been tested with wildfly 10.1.0 which was patched with https://github.com/wildfly/wildfly/pull/10082 as this fixes an
 issue in ActiveMQ Artemis ignoring the client mapping attribute.
 
-
+This patch was created against Apache 2.4.25.
