@@ -1,5 +1,5 @@
 --- mod_proxy_wstunnel.c.orig	2017-03-31 10:55:06.223830547 +0200
-+++ mod_proxy_wstunnel.c	2017-05-23 14:16:31.641548088 +0200
++++ mod_proxy_wstunnel.c	2017-07-09 12:48:20.000724226 +0200
 @@ -97,7 +97,8 @@
                                  proxy_worker *worker,
                                  proxy_server_conf *conf,
@@ -33,10 +33,10 @@
  
      upgrade = apr_table_get(r->headers_in, "Upgrade");
 -    if (!upgrade || strcasecmp(upgrade, "WebSocket") != 0) {
-+    if (!upgrade || (strcasecmp(upgrade, "jboss-remoting") != 0 && strcasecmp(upgrade,"activemq-remoting") != 0)) {
++    if (!upgrade || (strcasecmp(upgrade, "jboss-remoting") != 0 && strcasecmp(upgrade,"activemq-remoting") != 0 && strcasecmp(upgrade,"WebSocket") != 0)) {
          ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, APLOGNO(02900)
 -                      "declining URL %s  (not WebSocket)", url);
-+                      "declining URL %s  (not Jboss or ActiveMQ WebSocket)", url);
++                      "declining URL %s  (not Jboss or ActiveMQ or native WebSocket)", url);
          return DECLINED;
      }
  
